@@ -6,7 +6,7 @@ import { Coords, Entity } from '../../entities/models';
   providedIn: 'root',
 })
 export class SimStateService {
-  size = signal(10);
+  size = signal(25);
   tick = signal(0);
 
   surface = signal<Entity[]>([]);
@@ -16,8 +16,6 @@ export class SimStateService {
 
   constructor() {
     effect(() => {
-      const newStateMap: Map<string, Entity[]> = new Map();
-
       this.stateMap = this.generateEmptyMap(this.size());
     });
   }
@@ -25,6 +23,16 @@ export class SimStateService {
   setAt(coords: Coords, e: Entity) {
     this.stateMap.set(coords.hash(), [e]);
     this.tick.update((tick) => ++tick);
+  }
+  
+  addAt(coords: Coords, e: Entity) {
+    const current = this.stateMap.get(coords.hash())!;
+    this.stateMap.set(coords.hash(), [e, ...current]);
+    this.tick.update((tick) => ++tick);
+  }
+
+  clear() {
+    this.stateMap = this.generateEmptyMap(this.size());
   }
 
   getState(): typeof this.stateMap {

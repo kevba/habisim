@@ -16,8 +16,8 @@ import { ControlService } from './services/controls.service';
       <div class="col-span-4 bg-zinc-200 flex flex-col p-4">
         <h2 class="text-2xl">Controls</h2>
         <div class="flex">
-          <p-button (click)="controls.fillDummyEntities()" label="Fill Dummies">
-          </p-button>
+          <label>Fill Dummies</label>
+          <p-button (click)="controls.fillDummyEntities()" icon="pi pi-refresh"></p-button>
         </div>
 
         <div class="flex items-center gap-2">
