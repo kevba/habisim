@@ -24,7 +24,7 @@ export class BoardComponent {
 
     constructor() {
         effect(() => {
-            const t = this.simState.tick()
+            const t = this.simState.renderTick()
             
             const state = this.simState.getState()
             this.context().clearRect(0, 0, this.size, this.size)

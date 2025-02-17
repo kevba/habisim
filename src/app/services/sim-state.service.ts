@@ -1,34 +1,44 @@
 import { effect, Injectable, signal } from '@angular/core';
 import { Perlin } from '../../algorithms/perlin';
-import { Coords, Entity } from '../../entities/models';
+import { Coords, Entity, EntityStateAction } from '../../entities/models';
+import { MapState } from './models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SimStateService {
   size = signal(25);
-  tick = signal(0);
+  simulationTick = signal(0);
+  renderTick = signal(0);
 
   surface = signal<Entity[]>([]);
   biosphere = signal<Entity[]>([]);
 
-  private stateMap: Map<string, Entity[]> = new Map();
+  private stateMap: MapState = new Map();
 
   constructor() {
     effect(() => {
       this.stateMap = this.initMap(this.size());
     });
+    effect(() => {
+      this.simulationTick();
+      this.runSimulation();
+    });
+  }
+
+  doTick() {
+    this.simulationTick.update((tick) => ++tick);
   }
 
   setAt(coords: Coords, e: Entity) {
     this.stateMap.set(coords.hash(), [e]);
-    this.tick.update((tick) => ++tick);
+    this.renderTick.update((tick) => ++tick);
   }
-  
+
   addAt(coords: Coords, e: Entity) {
     const current = this.stateMap.get(coords.hash())!;
     this.stateMap.set(coords.hash(), [e, ...current]);
-    this.tick.update((tick) => ++tick);
+    this.renderTick.update((tick) => ++tick);
   }
 
   clear() {
@@ -40,7 +50,7 @@ export class SimStateService {
   }
 
   private initMap(size: number) {
-    const newStateMap: Map<string, Entity[]> = new Map();
+    const newStateMap: MapState = new Map();
 
     for (let x = 0; x < size; x++) {
       for (let y = 0; y < size; y++) {
@@ -49,5 +59,27 @@ export class SimStateService {
     }
 
     return newStateMap;
+  }
+
+  private runSimulation() {
+    this.stateMap.forEach((entities, coordsText) => {
+      entities.sort((k1, k2) => k1.zIndex - k2.zIndex);
+      const updatedEntityList: Entity[] = [];
+      entities.forEach((e) => {
+        const action = e.onTick(e, {
+          coords: Coords.from(coordsText),
+          state: this.stateMap,
+        });
+
+        if (action === EntityStateAction.Remove) {
+          return;
+        }
+
+        updatedEntityList.push(e);
+      });
+
+      this.stateMap.set(coordsText, updatedEntityList);
+    });
+    this.renderTick.update((tick) => ++tick);
   }
 }

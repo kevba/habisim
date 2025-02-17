@@ -13,7 +13,8 @@ import { ControlService } from './services/controls.service';
       <div class="col-span-10 flex place-content-center items-center">
         <app-board></app-board>
       </div>
-      <div class="col-span-4 bg-zinc-200 flex flex-col p-4">
+      <div class="col-span-4 bg-zinc-200 flex flex-col p-6">
+        <!-- TODO: extract to its own ControlPanel component -->
         <div class="flex flex-col gap-2">
           <h2 class="text-2xl">Controls</h2>
 
@@ -22,6 +23,13 @@ import { ControlService } from './services/controls.service';
             <p-button
               (click)="controls.generateBasic()"
               icon="pi pi-refresh"
+            ></p-button>
+          </div>
+          <div class="flex justify-between items-center">
+            <label>Simulate</label>
+            <p-button
+              (click)="controls.nextTick()"
+              icon="pi pi-forward"
             ></p-button>
           </div>
 
@@ -35,17 +43,10 @@ import { ControlService } from './services/controls.service';
 
           <div>
             <h2 class="text-2xl">Stats</h2>
-
-
-            <div class="flex items-center gap-2">
-              <label> Biosphere </label>
-              <div class="h-8 w-full">
-                {{ state.biosphere().length }}
-              </div>
-            </div>
-            <div class="h-8 w-full">
-              {{ state.surface().length }}
-            </div>
+            <div class="flex justify-between align-center">
+            <div>Simulation Age</div>
+            <div class="font-bold">{{ state.simulationTick() }}</div>
+          </div>
           </div>
         </div>
       </div>
@@ -59,6 +60,7 @@ export class AppComponent {
   title = 'habisim';
 
   constructor() {}
+  
   ngOnInit() {
     this.controls.generateBasic();
   }
