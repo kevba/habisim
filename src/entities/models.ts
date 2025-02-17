@@ -1,5 +1,5 @@
 import { MapState } from '../app/services/models';
-import { SimStateService } from '../app/services/sim-state.service';
+import { EntityAction } from './actions';
 import { Traits } from './traits/models';
 import { MappedTraits } from './traits/traits';
 
@@ -10,7 +10,7 @@ export interface Entity {
     name: string
 
     render(coords: Coords, scale: number, context: CanvasRenderingContext2D): void
-    onTick(e: Entity, ctx: TickContext): EntityStateAction;
+    onTick(e: Entity, ctx: TickContext): EntityAction;
 }
 
 export class Coords {
@@ -27,11 +27,7 @@ export class Coords {
     
 }
 
-// TODO: maybe use a mapped object type to enable more advaced responses
-export enum EntityStateAction {
-    Remove = 'remove',
-    Continue = 'continue'
-}
+
 
 export type TickContext = {
     coords: Coords,

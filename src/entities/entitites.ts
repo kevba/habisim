@@ -1,6 +1,7 @@
-import { Coords, Entity, EntityStateAction, TickContext } from './models';
+import { EntityAction, EntityActionTypes } from './actions';
+import { Coords, Entity, TickContext } from './models';
 import { Traits } from './traits/models';
-import { HabitatTrait, LivingTrait } from './traits/traits';
+import { EnergyTrait, HabitatTrait, HeterotrophTrait, ImmortalTrait, LivingTrait, PhotosynthesisTrait } from './traits/traits';
 
 export abstract class BaseEntity implements Entity {
   abstract name: string;
@@ -13,14 +14,18 @@ export abstract class BaseEntity implements Entity {
   traits: Entity['traits'] = {};
   zIndex = 0;
 
-  onTick(e: Entity, ctx: TickContext): EntityStateAction {
+  onTick(e: Entity, ctx: TickContext): EntityAction {
+    const actions: EntityAction[] = [{
+      type: EntityActionTypes.Continue,
+      priority: 0
+    }]
+
     for (const trait of Object.values(this.traits)) {
       const stateAction = trait.onTick(e, ctx);
-      if (stateAction !== EntityStateAction.Continue) {
-        return stateAction;
-      }
+      actions.push(stateAction)
     }
-    return EntityStateAction.Continue;
+    const actionsByPriority = actions.sort((a,b) => b.priority - a.priority)[0];
+    return actionsByPriority 
   }
 }
 
@@ -53,6 +58,7 @@ export class AnimalEntity extends BaseEntity {
   ): void {
     context.fillStyle = `black`;
     context.font = `${scale / 1.5}px Arial`;
+
     // text renders from bottom to top, so 0,0 must be rendered on the 0,1 line
     context.fillText(this.emoji, coords.x * scale, (coords.y + 1) * scale);
   }
@@ -62,8 +68,10 @@ export class FoxEntity extends AnimalEntity {
   override name = 'fox';
   override emoji = '🦊';
   override traits = {
-    [Traits.Living]: new LivingTrait(5),
+    [Traits.Living]: new LivingTrait(250),
+    [Traits.Energy]: new EnergyTrait(100, 10),
     [Traits.Habitat]: new HabitatTrait('grass'),
+    [Traits.Heterotroph]: new HeterotrophTrait(['rabbit']),
   };
 }
 
@@ -71,8 +79,10 @@ export class RabbitEntity extends AnimalEntity {
   override name = 'rabbit';
   override emoji = '🐰';
   override traits = {
-    [Traits.Living]: new LivingTrait(2),
+    [Traits.Living]: new LivingTrait(100),
+    [Traits.Energy]: new EnergyTrait(100, 10),
     [Traits.Habitat]: new HabitatTrait('grass'),
+    [Traits.Heterotroph]: new HeterotrophTrait(['grass']),
   };
 }
 
@@ -91,6 +101,14 @@ export abstract class TerrainEntity extends BaseEntity {
 }
 
 export class GrassEntity extends TerrainEntity {
+  override traits = {
+    [Traits.Living]: new LivingTrait(2),
+    [Traits.Energy]: new EnergyTrait(20, 0),
+    [Traits.Photosynthesis]: new PhotosynthesisTrait(),
+    // Would be fun if grass could turn into sand, but to keep this simple for, make it immortal
+    [Traits.Immortal]: new ImmortalTrait(),
+  };
+
   override name = 'grass';
   override color = 'green';
 }

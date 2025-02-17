@@ -1,7 +1,7 @@
 import { effect, Injectable, signal } from '@angular/core';
-import { Perlin } from '../../algorithms/perlin';
-import { Coords, Entity, EntityStateAction } from '../../entities/models';
+import { Coords, Entity } from '../../entities/models';
 import { MapState } from './models';
+import { EntityActionTypes } from '../../entities/actions';
 
 @Injectable({
   providedIn: 'root',
@@ -73,7 +73,7 @@ export class SimStateService {
           state: this.stateMap,
         });
 
-        if (action === EntityStateAction.Remove) {
+        if (action.type === EntityActionTypes.Remove) {
           return;
         }
 
