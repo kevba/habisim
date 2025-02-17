@@ -13,5 +13,6 @@ export enum Traits {
   Heterotroph = 'heterotroph',
   Energy = "energy",
   Immortal = "immortal",
-  Photosynthesis = "Photosynthesis",
+  Photosynthesis = "photosynthesis",
+  Locomotion = "locomotion",
 }

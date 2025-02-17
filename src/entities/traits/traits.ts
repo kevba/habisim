@@ -1,5 +1,5 @@
 import { EntityAction, EntityActionTypes } from '../actions';
-import { Entity, TickContext } from '../models';
+import { Coords, Entity, TickContext } from '../models';
 import { Traits, Trait } from './models';
 
 // TODO: right now all traits are ran once per tick using the onTick method.
@@ -14,6 +14,7 @@ export type MappedTraits = {
   [Traits.Photosynthesis]: PhotosynthesisTrait;
   [Traits.Energy]: EnergyTrait;
   [Traits.Immortal]: ImmortalTrait;
+  [Traits.Locomotion]: LocomotionTrait;
 };
 
 export class ImmortalTrait implements Trait {
@@ -124,6 +125,29 @@ export class PhotosynthesisTrait implements Trait {
       entity.traits.energy.add(this.energyPerTick);
     }
     return { type: EntityActionTypes.Continue, priority: 0 };
+  }
+}
+
+export class LocomotionTrait implements Trait {
+  type = Traits.Locomotion;
+
+  constructor(
+    public speed: number = 2,
+  ) {}
+
+  onTick(e: Entity, ctx: TickContext): EntityAction {
+    // a low prio 'wandering', to ensure entities do not get stuck
+    const newCoord = new Coords(ctx.coords.x, ctx.coords.y)
+
+    for (let i = 0; i< this.speed; i++) {
+      if (Math.random() > 0.5) {
+        newCoord.x +=  Math.random() > 0.5 ? 1 : -1
+      } else {
+        newCoord.y +=  Math.random() > 0.5 ? 1 : -1
+      }
+    }
+
+    return { type: EntityActionTypes.Move, priority: 1, coords: newCoord };
   }
 }
 

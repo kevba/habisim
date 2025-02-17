@@ -11,9 +11,6 @@ export class SimStateService {
   simulationTick = signal(0);
   renderTick = signal(0);
 
-  surface = signal<Entity[]>([]);
-  biosphere = signal<Entity[]>([]);
-
   private stateMap: MapState = new Map();
 
   constructor() {
@@ -42,8 +39,8 @@ export class SimStateService {
   }
 
   clear() {
-    this.renderTick.set(0)
-    this.simulationTick.set(0)
+    this.renderTick.set(0);
+    this.simulationTick.set(0);
     this.stateMap = this.initMap(this.size());
   }
 
@@ -64,24 +61,34 @@ export class SimStateService {
   }
 
   private runSimulation() {
+    const newMap: MapState = new Map();
+
     this.stateMap.forEach((entities, coordsText) => {
       entities.sort((k1, k2) => k1.zIndex - k2.zIndex);
-      const updatedEntityList: Entity[] = [];
+      const updatedEntityList = newMap.get(coordsText) || [];
       entities.forEach((e) => {
         const action = e.onTick(e, {
           coords: Coords.from(coordsText),
           state: this.stateMap,
         });
 
-        if (action.type === EntityActionTypes.Remove) {
-          return;
+        switch(action.type) {
+          case EntityActionTypes.Remove:
+            break;
+          case EntityActionTypes.Continue:
+            updatedEntityList.push(e);
+            break
+          case EntityActionTypes.Move:
+            const moveLocation = newMap.get(action.coords.hash()) || [];
+            moveLocation.push(e);
+            newMap.set(action.coords.hash(), moveLocation);
+            break
         }
-
-        updatedEntityList.push(e);
       });
 
-      this.stateMap.set(coordsText, updatedEntityList);
+      newMap.set(coordsText, updatedEntityList);
     });
+    this.stateMap = newMap
     this.renderTick.update((tick) => ++tick);
   }
 }

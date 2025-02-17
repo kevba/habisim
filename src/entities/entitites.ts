@@ -1,7 +1,7 @@
 import { EntityAction, EntityActionTypes } from './actions';
 import { Coords, Entity, TickContext } from './models';
 import { Traits } from './traits/models';
-import { EnergyTrait, HabitatTrait, HeterotrophTrait, ImmortalTrait, LivingTrait, PhotosynthesisTrait } from './traits/traits';
+import { EnergyTrait, HabitatTrait, HeterotrophTrait, ImmortalTrait, LivingTrait, LocomotionTrait, PhotosynthesisTrait } from './traits/traits';
 
 export abstract class BaseEntity implements Entity {
   abstract name: string;
@@ -69,7 +69,8 @@ export class FoxEntity extends AnimalEntity {
   override emoji = '🦊';
   override traits = {
     [Traits.Living]: new LivingTrait(250),
-    [Traits.Energy]: new EnergyTrait(100, 10),
+    [Traits.Locomotion]: new LocomotionTrait(),
+    [Traits.Energy]: new EnergyTrait(100, 20),
     [Traits.Habitat]: new HabitatTrait('grass'),
     [Traits.Heterotroph]: new HeterotrophTrait(['rabbit']),
   };
@@ -80,6 +81,7 @@ export class RabbitEntity extends AnimalEntity {
   override emoji = '🐰';
   override traits = {
     [Traits.Living]: new LivingTrait(100),
+    [Traits.Locomotion]: new LocomotionTrait(1),
     [Traits.Energy]: new EnergyTrait(100, 10),
     [Traits.Habitat]: new HabitatTrait('grass'),
     [Traits.Heterotroph]: new HeterotrophTrait(['grass']),
