@@ -1,8 +1,13 @@
+import { MappedTraits, Traits } from './traits';
+
 export interface Entity {
+    traits: {[T in Traits]?: MappedTraits[T]};
+
     zIndex: number
     name: string
 
-    render: (coords: Coords, scale: number, context: CanvasRenderingContext2D) => void
+    render(coords: Coords, scale: number, context: CanvasRenderingContext2D): void
+    onTick(x: number, y: number, e: Entity): void;
 }
 
 export class Coords {

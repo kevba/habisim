@@ -16,7 +16,7 @@ export class SimStateService {
 
   constructor() {
     effect(() => {
-      this.stateMap = this.generateEmptyMap(this.size());
+      this.stateMap = this.initMap(this.size());
     });
   }
 
@@ -32,14 +32,14 @@ export class SimStateService {
   }
 
   clear() {
-    this.stateMap = this.generateEmptyMap(this.size());
+    this.stateMap = this.initMap(this.size());
   }
 
   getState(): typeof this.stateMap {
     return this.stateMap;
   }
 
-  generateEmptyMap(size: number) {
+  private initMap(size: number) {
     const newStateMap: Map<string, Entity[]> = new Map();
 
     for (let x = 0; x < size; x++) {

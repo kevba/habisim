@@ -31,7 +31,7 @@ export class BoardComponent {
             this.drawGrid(this.simState.size())
 
             state.forEach((entities, coordsText) => {
-                entities.sort((k1, k2) => k2.zIndex - k1.zIndex)
+                entities.sort((k1, k2) => k1.zIndex - k2.zIndex)
                 entities.forEach((e) => {
                     this.draw(Coords.from(coordsText), e)
                 })

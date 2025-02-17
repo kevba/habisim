@@ -1,7 +1,24 @@
 import { Coords, Entity } from "./models";
+import { LivingTrait, ReproducerTrait, Traits } from "./traits";
 
-export class DummyEntity implements Entity {
-    zIndex: number = 0;
+export abstract class BaseEntity implements Entity {
+    abstract name: string;
+    abstract render(coords: Coords, scale: number, context: CanvasRenderingContext2D): void
+
+    traits: Entity['traits'] = {};
+    zIndex = 0;
+
+    onTick(x: number, y: number, e: Entity): void {
+        Object.values(this.traits).forEach(trait => {
+            trait.onTick(x,y,e)
+        });    
+    }
+
+}
+
+export class DummyEntity extends BaseEntity {
+    override traits = {  };
+    override zIndex: number = 0;
     name = 'dummy'
 
     render(coords: Coords, scale: number, context: CanvasRenderingContext2D): void {
@@ -12,14 +29,14 @@ export class DummyEntity implements Entity {
     }
 } 
 
-export class AnimalEntity implements Entity {
-    zIndex: number = 0;
+export class AnimalEntity extends BaseEntity {
+    override zIndex: number = 0;
     name = 'animal'
-    emoji = '🦊'
+    emoji = '\U1F610'
 
     render(coords: Coords, scale: number, context: CanvasRenderingContext2D): void {
         context.fillStyle = `black`
-        context.font = `${scale}px Arial`
+        context.font = `${scale/1.5}px Arial`
         // text renders from bottom to top, so 0,0 must be rendered on the 0,1 line
         context.fillText(this.emoji, coords.x * scale, (coords.y+1) * scale)
     }
@@ -28,6 +45,7 @@ export class AnimalEntity implements Entity {
 export class FoxEntity extends AnimalEntity {
     override name = 'fox'
     override emoji = '🦊'
+    override traits = { [Traits.Living]: new LivingTrait() };    
 }
 
 export class RabbitEntity extends AnimalEntity {
@@ -36,10 +54,11 @@ export class RabbitEntity extends AnimalEntity {
 }
 
 
-export class TerrainEntity implements Entity {
-    zIndex: number = -1;
+export class TerrainEntity extends BaseEntity {
+    override zIndex: number = -1;
     name = 'terrain_dummy'
     color = 'transparent'
+
 
     render(coords: Coords, scale: number, context: CanvasRenderingContext2D): void {
         context.fillStyle = this.color
