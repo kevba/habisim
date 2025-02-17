@@ -42,6 +42,8 @@ export class SimStateService {
   }
 
   clear() {
+    this.renderTick.set(0)
+    this.simulationTick.set(0)
     this.stateMap = this.initMap(this.size());
   }
 

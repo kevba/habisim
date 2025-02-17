@@ -1,5 +1,4 @@
 import { Entity, EntityStateAction, TickContext } from '../models';
-import { HabitatTrait, LivingTrait, ReproducerTrait } from './traits';
 
 export interface Trait {
   type: Traits;
