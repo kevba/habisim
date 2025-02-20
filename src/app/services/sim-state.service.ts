@@ -7,7 +7,7 @@ import { EntityActionTypes } from '../../entities/actions';
   providedIn: 'root',
 })
 export class SimStateService {
-  size = signal(25);
+  size = signal(100);
   simulationTick = signal(0);
   renderTick = signal(0);
 
@@ -67,22 +67,18 @@ export class SimStateService {
       entities.sort((k1, k2) => k1.zIndex - k2.zIndex);
       const updatedEntityList = newMap.get(coordsText) || [];
       entities.forEach((e) => {
-        const action = e.onTick(e, {
+        e.onTick({
           coords: Coords.from(coordsText),
           state: this.stateMap,
         });
-
-        switch(action.type) {
-          case EntityActionTypes.Remove:
-            break;
-          case EntityActionTypes.Continue:
-            updatedEntityList.push(e);
-            break
-          case EntityActionTypes.Move:
-            const moveLocation = newMap.get(action.coords.hash()) || [];
-            moveLocation.push(e);
-            newMap.set(action.coords.hash(), moveLocation);
-            break
+      })
+      entities.forEach((e) => {
+        const invalid = e.check({
+          coords: Coords.from(coordsText),
+          state: this.stateMap,
+        });
+        if (!invalid) {
+          updatedEntityList.push(e);
         }
       });
 

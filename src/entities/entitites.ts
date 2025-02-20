@@ -1,10 +1,14 @@
 import { EntityAction, EntityActionTypes } from './actions';
 import { Coords, Entity, TickContext } from './models';
-import { Traits } from './traits/models';
-import { EnergyTrait, HabitatTrait, HeterotrophTrait, ImmortalTrait, LivingTrait, LocomotionTrait, PhotosynthesisTrait } from './traits/traits';
+import { HeterotrophTrait, LivingTrait } from './traits/advanced-traits';
+import { AdvancedTrait, Resource, Traits } from './traits/models';
 
 export abstract class BaseEntity implements Entity {
-  abstract name: string;
+  resourceTree: Record<Resource, AdvancedTrait[]> = {
+    [Resource.Energy]: [],
+    [Resource.Movement]: []
+  }
+abstract name: string;
   abstract render(
     coords: Coords,
     scale: number,
@@ -14,35 +18,29 @@ export abstract class BaseEntity implements Entity {
   traits: Entity['traits'] = {};
   zIndex = 0;
 
-  onTick(e: Entity, ctx: TickContext): EntityAction {
-    const actions: EntityAction[] = [{
-      type: EntityActionTypes.Continue,
-      priority: 0
-    }]
-
-    for (const trait of Object.values(this.traits)) {
-      const stateAction = trait.onTick(e, ctx);
-      actions.push(stateAction)
-    }
-    const actionsByPriority = actions.sort((a,b) => b.priority - a.priority)[0];
-    return actionsByPriority 
+  init(ctx: TickContext): void {    
+    Object.values(this.traits).forEach((t) => {
+      if (t.provides != null) {
+        this.resourceTree[t.provides].push(t)
+      }
+    });
+    Object.values(this.traits).forEach((t) => {
+      t.init(this, ctx)
+    });
   }
-}
 
-export class DummyEntity extends BaseEntity {
-  override traits = {};
-  override zIndex: number = 0;
-  name = 'dummy';
+  onTick(ctx: TickContext) {
+    Object.values(this.traits).forEach(t => {
+      t.onTick(this, ctx)
+    })
+    // Determine what action should be taken
+    Object.values(this.traits).map(t => 
+      t.act(this, ctx)
+    )
+  }
 
-  render(
-    coords: Coords,
-    scale: number,
-    context: CanvasRenderingContext2D
-  ): void {
-    context.fillStyle = `black`;
-    context.font = `${scale}px Arial`;
-    // text renders from bottom to top, so 0,0 must be rendered on the 0,1 line
-    context.fillText('*', coords.x * scale, (coords.y + 1) * scale);
+  check(ctx: TickContext): boolean {
+    return Object.values(this.traits).every((t) => t.check(this, ctx));
   }
 }
 
@@ -68,10 +66,10 @@ export class FoxEntity extends AnimalEntity {
   override name = 'fox';
   override emoji = '🦊';
   override traits = {
-    [Traits.Living]: new LivingTrait(250),
-    [Traits.Locomotion]: new LocomotionTrait(),
-    [Traits.Energy]: new EnergyTrait(100, 20),
-    [Traits.Habitat]: new HabitatTrait('grass'),
+    // [Traits.Aging]: new AgingTrait(250),
+    // [Traits.Locomotion]: new LocomotionTrait(),
+    [Traits.Alive]: new LivingTrait(100, 20),
+    // [Traits.Habitat]: new HabitatTrait('grass'),
     [Traits.Heterotroph]: new HeterotrophTrait(['rabbit']),
   };
 }
@@ -80,10 +78,10 @@ export class RabbitEntity extends AnimalEntity {
   override name = 'rabbit';
   override emoji = '🐰';
   override traits = {
-    [Traits.Living]: new LivingTrait(100),
-    [Traits.Locomotion]: new LocomotionTrait(1),
-    [Traits.Energy]: new EnergyTrait(100, 10),
-    [Traits.Habitat]: new HabitatTrait('grass'),
+    // [Traits.Aging]: new AgingTrait(100),
+    // [Traits.Locomotion]: new LocomotionTrait(1),
+    [Traits.Alive]: new LivingTrait(100, 10),
+    // [Traits.Habitat]: new HabitatTrait('grass'),
     [Traits.Heterotroph]: new HeterotrophTrait(['grass']),
   };
 }
@@ -104,11 +102,11 @@ export abstract class TerrainEntity extends BaseEntity {
 
 export class GrassEntity extends TerrainEntity {
   override traits = {
-    [Traits.Living]: new LivingTrait(2),
-    [Traits.Energy]: new EnergyTrait(20, 0),
-    [Traits.Photosynthesis]: new PhotosynthesisTrait(),
+    // [Traits.Aging]: new AgingTrait(2),
+    [Traits.Alive]: new LivingTrait(20, 0, 20),
+    // [Traits.Photosynthesis]: new PhotosynthesisTrait(),
     // Would be fun if grass could turn into sand, but to keep this simple for, make it immortal
-    [Traits.Immortal]: new ImmortalTrait(),
+    // [Traits.Immortal]: new ImmortalTrait(),
   };
 
   override name = 'grass';
@@ -117,4 +115,21 @@ export class GrassEntity extends TerrainEntity {
 export class WaterEntity extends TerrainEntity {
   override name = 'water';
   override color = 'blue';
+}
+
+export class DummyEntity extends BaseEntity {
+  override traits = {};
+  override zIndex: number = 0;
+  name = 'dummy';
+
+  render(
+    coords: Coords,
+    scale: number,
+    context: CanvasRenderingContext2D
+  ): void {
+    context.fillStyle = `black`;
+    context.font = `${scale}px Arial`;
+    // text renders from bottom to top, so 0,0 must be rendered on the 0,1 line
+    context.fillText('*', coords.x * scale, (coords.y + 1) * scale);
+  }
 }

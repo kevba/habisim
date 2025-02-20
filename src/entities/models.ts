@@ -1,16 +1,16 @@
 import { MapState } from '../app/services/models';
-import { EntityAction } from './actions';
-import { Traits } from './traits/models';
-import { MappedTraits } from './traits/traits';
+import { MappedAdvancedTraits } from './traits/advanced-traits';
+import { AdvancedTrait, Resource, Traits } from './traits/models';
 
 export interface Entity {
-    traits: {[T in Traits]?: MappedTraits[T]};
-
+    traits: {[T in Traits]?: MappedAdvancedTraits[T]};
+    resourceTree: Record<Resource, AdvancedTrait[]>;
     zIndex: number
-    name: string
-
+    name: string    
+    init(ctx: TickContext): void
+    check(ctx: TickContext): boolean
+    onTick(ctx: TickContext): void;
     render(coords: Coords, scale: number, context: CanvasRenderingContext2D): void
-    onTick(e: Entity, ctx: TickContext): EntityAction;
 }
 
 export class Coords {
