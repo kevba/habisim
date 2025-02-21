@@ -1,5 +1,5 @@
 import { effect, Injectable, signal } from '@angular/core';
-import { Coords, Entity } from '../../entities/models';
+import { Coords, Entity, TickContext } from '../../entities/models';
 import { MapState } from './models';
 import { EntityActionTypes } from '../../entities/actions';
 
@@ -29,12 +29,14 @@ export class SimStateService {
 
   setAt(coords: Coords, e: Entity) {
     this.stateMap.set(coords.hash(), [e]);
+    e.init();
     this.renderTick.update((tick) => ++tick);
   }
 
   addAt(coords: Coords, e: Entity) {
     const current = this.stateMap.get(coords.hash())!;
     this.stateMap.set(coords.hash(), [e, ...current]);
+    e.init();
     this.renderTick.update((tick) => ++tick);
   }
 
@@ -64,27 +66,29 @@ export class SimStateService {
     const newMap: MapState = new Map();
 
     this.stateMap.forEach((entities, coordsText) => {
+      const entityContext: Record<number, TickContext> = {};
       entities.sort((k1, k2) => k1.zIndex - k2.zIndex);
-      const updatedEntityList = newMap.get(coordsText) || [];
       entities.forEach((e) => {
-        e.onTick({
+        const ctx: TickContext = {
           coords: Coords.from(coordsText),
           state: this.stateMap,
-        });
-      })
+        };
+        entityContext[e.id] = ctx;
+        e.onTick(ctx);
+      });
       entities.forEach((e) => {
-        const invalid = e.check({
-          coords: Coords.from(coordsText),
-          state: this.stateMap,
-        });
-        if (!invalid) {
-          updatedEntityList.push(e);
+        const ctx = entityContext[e.id];
+        const updated = e.update(ctx);
+        if (updated) {
+          const updatedCoords = ctx.coords.hash();
+
+          const newEntities = newMap.get(updatedCoords) || [];
+          newEntities.push(updated);
+          newMap.set(updatedCoords, newEntities);
         }
       });
-
-      newMap.set(coordsText, updatedEntityList);
     });
-    this.stateMap = newMap
+    this.stateMap = newMap;
     this.renderTick.update((tick) => ++tick);
   }
 }

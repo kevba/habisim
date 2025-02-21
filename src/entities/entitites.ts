@@ -1,14 +1,19 @@
-import { EntityAction, EntityActionTypes } from './actions';
 import { Coords, Entity, TickContext } from './models';
-import { HeterotrophTrait, LivingTrait } from './traits/advanced-traits';
+import { HeterotrophTrait } from './traits/heterotroph';
+import { LivingTrait } from './traits/living';
+import { LocomotionTrait } from './traits/locomotion';
 import { AdvancedTrait, Resource, Traits } from './traits/models';
 
+let ID_COUNT = 1;
+
 export abstract class BaseEntity implements Entity {
+  id = ID_COUNT++;
+
   resourceTree: Record<Resource, AdvancedTrait[]> = {
     [Resource.Energy]: [],
-    [Resource.Movement]: []
-  }
-abstract name: string;
+    [Resource.Movement]: [],
+  };
+  abstract name: string;
   abstract render(
     coords: Coords,
     scale: number,
@@ -18,29 +23,43 @@ abstract name: string;
   traits: Entity['traits'] = {};
   zIndex = 0;
 
-  init(ctx: TickContext): void {    
+  init(): void {
     Object.values(this.traits).forEach((t) => {
       if (t.provides != null) {
-        this.resourceTree[t.provides].push(t)
+        this.resourceTree[t.provides].push(t);
       }
     });
     Object.values(this.traits).forEach((t) => {
-      t.init(this, ctx)
+      t.init(this);
     });
   }
 
   onTick(ctx: TickContext) {
-    Object.values(this.traits).forEach(t => {
-      t.onTick(this, ctx)
-    })
-    // Determine what action should be taken
-    Object.values(this.traits).map(t => 
-      t.act(this, ctx)
-    )
+    const traits = Object.values(this.traits);
+    traits.forEach((t) => {
+      t.onTick(this, ctx);
+    });
+
+    const rootTraits = traits.filter((t) => !t.provides?.length);
+    const weightedActions = rootTraits.map((t) => t.act(this, ctx));
+    const bestAction = weightedActions.sort(
+      (a1, a2) => a2.weight - a1.weight
+    )[0];
+    if (bestAction) {
+      bestAction.action(this, ctx);
+    }
   }
 
-  check(ctx: TickContext): boolean {
-    return Object.values(this.traits).every((t) => t.check(this, ctx));
+  update(ctx: TickContext): Entity | null {
+    const traits = Object.values(this.traits);
+    if (!traits.length) {
+      return this;
+    }
+    if (traits.every((t) => t.check(this, ctx))) {
+      return this;
+    }
+
+    return null;
   }
 }
 
@@ -66,10 +85,8 @@ export class FoxEntity extends AnimalEntity {
   override name = 'fox';
   override emoji = '🦊';
   override traits = {
-    // [Traits.Aging]: new AgingTrait(250),
-    // [Traits.Locomotion]: new LocomotionTrait(),
     [Traits.Alive]: new LivingTrait(100, 20),
-    // [Traits.Habitat]: new HabitatTrait('grass'),
+    [Traits.Locomotion]: new LocomotionTrait(2),
     [Traits.Heterotroph]: new HeterotrophTrait(['rabbit']),
   };
 }
@@ -78,10 +95,8 @@ export class RabbitEntity extends AnimalEntity {
   override name = 'rabbit';
   override emoji = '🐰';
   override traits = {
-    // [Traits.Aging]: new AgingTrait(100),
-    // [Traits.Locomotion]: new LocomotionTrait(1),
+    [Traits.Locomotion]: new LocomotionTrait(1),
     [Traits.Alive]: new LivingTrait(100, 10),
-    // [Traits.Habitat]: new HabitatTrait('grass'),
     [Traits.Heterotroph]: new HeterotrophTrait(['grass']),
   };
 }
@@ -102,19 +117,26 @@ export abstract class TerrainEntity extends BaseEntity {
 
 export class GrassEntity extends TerrainEntity {
   override traits = {
-    // [Traits.Aging]: new AgingTrait(2),
     [Traits.Alive]: new LivingTrait(20, 0, 20),
-    // [Traits.Photosynthesis]: new PhotosynthesisTrait(),
-    // Would be fun if grass could turn into sand, but to keep this simple for, make it immortal
-    // [Traits.Immortal]: new ImmortalTrait(),
   };
 
   override name = 'grass';
   override color = 'green';
+
+  override update(ctx: TickContext): Entity | null {
+    // TODO: lacking init
+    return super.update(ctx) || new SandEntity();
+  }
 }
+
 export class WaterEntity extends TerrainEntity {
   override name = 'water';
   override color = 'blue';
+}
+
+export class SandEntity extends TerrainEntity {
+  override name = 'sand';
+  override color = 'yellow';
 }
 
 export class DummyEntity extends BaseEntity {

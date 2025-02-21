@@ -87,9 +87,9 @@ export enum Traits {
   // Aging = 'living',
   Heterotroph = 'heterotroph',
   Senses = "senses",
+  Locomotion = 'locomotion',
   // Habitat = 'habitat',
   // Reproducer = 'reproducer',
   // Immortal = 'immortal',
   // Photosynthesis = 'photosynthesis',
-  // Locomotion = 'locomotion',
 }
