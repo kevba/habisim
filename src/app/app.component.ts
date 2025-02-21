@@ -33,6 +33,14 @@ import { ControlService } from './services/controls.service';
             ></p-button>
           </div>
 
+          <div class="flex justify-between items-center">
+            <label>{{ !controls.isLooping() ? 'Start' : 'Stop' }}</label>
+            <p-button
+              (click)="controls.toggleLoop()"
+              icon="{{ !controls.isLooping() ? 'pi pi-play' : 'pi pi-pause' }}"
+            ></p-button>
+          </div>
+
           <div class="flex justify-between align-center">
             <label>Fill Dummies</label>
             <p-button
@@ -44,9 +52,9 @@ import { ControlService } from './services/controls.service';
           <div>
             <h2 class="text-2xl">Stats</h2>
             <div class="flex justify-between align-center">
-            <div>Simulation Age</div>
-            <div class="font-bold">{{ state.simulationTick() }}</div>
-          </div>
+              <div>Simulation Age</div>
+              <div class="font-bold">{{ state.simulationTick() }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -60,7 +68,7 @@ export class AppComponent {
   title = 'habisim';
 
   constructor() {}
-  
+
   ngOnInit() {
     this.controls.generateBasic();
   }

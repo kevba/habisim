@@ -1,10 +1,8 @@
-import {
-  DummyEntity,
-} from '../../entities/entitites';
+import { DummyEntity } from '../../entities/entitites';
 import { Coords } from '../../entities/models';
 import { GenerateService } from './generate.service';
 import { SimStateService } from './sim-state.service';
-import { inject, Injectable } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +10,20 @@ import { inject, Injectable } from '@angular/core';
 export class ControlService {
   state = inject(SimStateService);
   generate = inject(GenerateService);
+
+  isLooping = signal(false);
+  timeout?: NodeJS.Timeout;
+
+  loop = effect(() => {
+    this.state.simulationTick();
+    if (this.isLooping()) {
+      this.timeout = setTimeout(() => {
+        this.state.doTick();
+      }, 500);
+    } else {
+      clearTimeout(this.timeout);
+    }
+  });
 
   fillDummyEntities() {
     this.state.clear();
@@ -27,5 +39,9 @@ export class ControlService {
 
   nextTick() {
     this.state.doTick();
+  }
+
+  toggleLoop() {
+    this.isLooping.update((l) => !l);
   }
 }
