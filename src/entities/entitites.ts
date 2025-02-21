@@ -1,8 +1,12 @@
 import { Coords, Entity, TickContext } from './models';
+import { AdverseTrait } from './traits/adverse';
+import { HabitatTrait } from './traits/habitat';
 import { HeterotrophTrait } from './traits/heterotroph';
 import { LivingTrait } from './traits/living';
 import { LocomotionTrait } from './traits/locomotion';
 import { AdvancedTrait, Resource, Traits } from './traits/models';
+import { PhotosynthesisTrait } from './traits/photosynthesis';
+import { UnsuitableTrait } from './traits/unsuitable';
 
 let ID_COUNT = 1;
 
@@ -55,11 +59,15 @@ export abstract class BaseEntity implements Entity {
     if (!traits.length) {
       return this;
     }
-    if (traits.every((t) => t.check(this, ctx))) {
-      return this;
+
+    const updated = traits
+      .map((t) => t.check(this, ctx))
+      .filter((e) => e !== null);
+    if (updated.length !== traits.length) {
+      return null;
     }
 
-    return null;
+    return updated[0] || this;
   }
 }
 
@@ -86,6 +94,8 @@ export class FoxEntity extends AnimalEntity {
   override emoji = '🦊';
   override traits = {
     [Traits.Alive]: new LivingTrait(100, 20),
+    [Traits.Habitat]: new HabitatTrait(['grass']),
+    [Traits.Unsuitable]: new UnsuitableTrait(['water']),
     [Traits.Locomotion]: new LocomotionTrait(2),
     [Traits.Heterotroph]: new HeterotrophTrait(['rabbit']),
   };
@@ -96,6 +106,9 @@ export class RabbitEntity extends AnimalEntity {
   override emoji = '🐰';
   override traits = {
     [Traits.Locomotion]: new LocomotionTrait(1),
+    [Traits.Habitat]: new HabitatTrait(['grass']),
+    [Traits.Adverse]: new AdverseTrait(['fox']),
+    [Traits.Unsuitable]: new UnsuitableTrait(['water']),
     [Traits.Alive]: new LivingTrait(100, 10),
     [Traits.Heterotroph]: new HeterotrophTrait(['grass']),
   };
@@ -118,14 +131,20 @@ export abstract class TerrainEntity extends BaseEntity {
 export class GrassEntity extends TerrainEntity {
   override traits = {
     [Traits.Alive]: new LivingTrait(20, 0, 20),
+    [Traits.Photosynthesis]: new PhotosynthesisTrait(20),
   };
 
   override name = 'grass';
   override color = 'green';
 
   override update(ctx: TickContext): Entity | null {
-    // TODO: lacking init
-    return super.update(ctx) || new SandEntity();
+    const updated = super.update(ctx);
+    if (updated === null) {
+      const sand = new SandEntity();
+      sand.init();
+      return sand;
+    }
+    return updated;
   }
 }
 
@@ -135,8 +154,21 @@ export class WaterEntity extends TerrainEntity {
 }
 
 export class SandEntity extends TerrainEntity {
+  override traits = {
+    [Traits.Unsuitable]: new UnsuitableTrait(['water'], 2),
+  };
+
   override name = 'sand';
   override color = 'yellow';
+
+  override update(ctx: TickContext): Entity | null {
+    let updated = super.update(ctx);
+    if (updated === null) {
+      updated = new GrassEntity();
+      updated.init();
+    }
+    return updated;
+  }
 }
 
 export class DummyEntity extends BaseEntity {

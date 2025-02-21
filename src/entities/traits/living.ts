@@ -13,8 +13,8 @@ export class LivingTrait extends BaseTrait {
     super();
   }
 
-  override check(e: Entity, ctx: TickContext): boolean {
-    return this.energy > 0;
+  override check(e: Entity, ctx: TickContext) {
+    return this.energy > 0 ? e : null;
   }
 
   override onTick(e: Entity, ctx: TickContext) {
@@ -30,7 +30,7 @@ export class LivingTrait extends BaseTrait {
   ): WeightedAction {
     const energyPercent = this.energy / this.energyCap;
 
-    if (energyPercent > 0.8) {
+    if (energyPercent > 0.6) {
       return NullAction;
     } else {
       const options = e.resourceTree[Resource.Energy].map((trait) => {

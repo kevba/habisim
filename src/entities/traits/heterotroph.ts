@@ -1,8 +1,9 @@
 import { MovementUtils } from '../../algorithms/movement';
 import { Entity, TickContext, Coords } from '../models';
-import { BaseTrait, NullAction, SensesTrait } from './abstract-base';
+import { BaseTrait, NullAction } from './abstract-base';
 import { LivingTrait } from './living';
 import { Resource, Traits, WeightedAction } from './models';
+import { SensesTrait } from './senses';
 
 export class HeterotrophTrait extends BaseTrait {
   override provides = Resource.Energy;

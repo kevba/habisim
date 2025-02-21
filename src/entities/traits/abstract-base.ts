@@ -13,17 +13,10 @@ export abstract class BaseTrait implements AdvancedTrait {
       action: (e, ctx) => this.action(e, ctx),
     };
   }
-  check(e: Entity, ctx: TickContext) {
-    return true;
+  check(e: Entity, ctx: TickContext): Entity | null {
+    return e;
   }
   action(e: Entity, ctx: TickContext) {}
-}
-
-export class SensesTrait extends BaseTrait {
-  override type = Traits.Senses;
-  constructor(public senseRadius = 1) {
-    super();
-  }
 }
 
 export const NullAction = {

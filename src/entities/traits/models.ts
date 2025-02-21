@@ -24,7 +24,7 @@ export interface AdvancedTrait {
 
   // check the state of the entity after all onTicks have been executed.
   // this can be used to remove an entity if certain thresholds ahve been met after execution.
-  check(e: Entity, ctx: TickContext): boolean;
+  check(e: Entity, ctx: TickContext): Entity | null;
 
   // Calculated value for this behavoir
   action: TraitAction;
@@ -84,12 +84,11 @@ export type TraitAction = (e: Entity, ctx: TickContext) => void;
 
 export enum Traits {
   Alive = 'alive',
-  // Aging = 'living',
   Heterotroph = 'heterotroph',
-  Senses = "senses",
+  Senses = 'senses',
   Locomotion = 'locomotion',
-  // Habitat = 'habitat',
-  // Reproducer = 'reproducer',
-  // Immortal = 'immortal',
-  // Photosynthesis = 'photosynthesis',
+  Habitat = 'Habitat',
+  Adverse = 'Adverse',
+  Photosynthesis = 'Photosynthesis',
+  Unsuitable = 'Unsuitable',
 }
