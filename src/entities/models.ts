@@ -50,8 +50,6 @@ export enum Resource {
 export enum Attribute {
   Movement = 'movement',
   Habitat = 'habitats',
-  Adverse = 'adverse',
-  Unsuitable = 'unsuitable',
 }
 
 export enum Weight {

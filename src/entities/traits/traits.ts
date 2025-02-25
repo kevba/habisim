@@ -9,6 +9,7 @@ import { Traits } from './models';
 import { PhotosynthesisTrait } from './photosynthesis';
 import { SensesTrait } from './senses';
 import { UnsuitableTrait } from './unsuitable';
+import { WitherTrait } from './wither';
 
 // TODO: resource values such as energy,movement should be in seperate traits maybe?
 
@@ -22,5 +23,6 @@ export type MappedTraits = {
   [Traits.Photosynthesis]: PhotosynthesisTrait;
   [Traits.Unsuitable]: UnsuitableTrait;
   [Traits.Growth]: GrowthTrait;
+  [Traits.Wither]: WitherTrait;
   [Traits.Hydrate]: HydrateTrait;
 };

@@ -40,35 +40,6 @@ export type WeightedAction = {
   action: TraitAction;
 };
 
-export class HunterTrait {
-  provides = ['energy'];
-  needs = ['movement'];
-
-  action(e: Entity, ctx: TickContext) {
-    // Destroy an entity; adds enery to this one
-  }
-
-  onTick() {
-    // Check if entity is in range; if not check movement?
-    // or do a MOVE action? why should the movement trait provide it? it only gives the ability to do so
-    // Weight should be based on how close a foodsource is.
-  }
-}
-
-export class MovementTrait {
-  provides = ['movement'];
-  needs = [''];
-
-  action(e: Entity, ctx: TickContext) {
-    // move to some defined location? how to pass info
-  }
-
-  desionWeight() {
-    // Check if entity is in range; if not check movement?
-    // Weight should be based on how close a foodsource is.
-  }
-}
-
 export type TraitAction = (e: Entity, ctx: TickContext) => void;
 
 export enum Traits {
@@ -81,5 +52,6 @@ export enum Traits {
   Photosynthesis = 'Photosynthesis',
   Unsuitable = 'Unsuitable',
   Growth = 'Growth',
-  Hydrate = 'Hydrate', // used to run initial setup for an entity. Mainly needed for interactions between traits
+  Hydrate = 'Hydrate',
+  Wither = 'Wither',
 }

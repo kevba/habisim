@@ -9,6 +9,7 @@ import { LocomotionTrait } from './traits/locomotion';
 import { Trait, Traits } from './traits/models';
 import { PhotosynthesisTrait } from './traits/photosynthesis';
 import { UnsuitableTrait } from './traits/unsuitable';
+import { WitherTrait } from './traits/wither';
 
 let ID_COUNT = 1;
 
@@ -30,8 +31,6 @@ export abstract class BaseEntity implements Entity {
     [Resource.Water]: [],
     [Attribute.Movement]: [],
     [Attribute.Habitat]: [],
-    [Attribute.Adverse]: [],
-    [Attribute.Unsuitable]: [],
   };
 
   abstract name: string;
@@ -44,10 +43,7 @@ export abstract class BaseEntity implements Entity {
   traits: Entity['traits'] = {};
   zIndex = 0;
 
-  constructor() {
-    this.init();
-  }
-
+  // Init MUST be called in the constructor of every implementation, after setting up the traits
   init(): void {
     Object.values(this.traits).forEach((t) => {
       if (t.provides != null) {
@@ -65,6 +61,8 @@ export abstract class BaseEntity implements Entity {
       t.onTick(this, ctx);
     });
 
+    // TODO: we have multiple kinds of traits, some that act, which want to run only of per tick,
+    // and some that are always working. these continues trait to not neccesary provide anything.
     const rootTraits = traits.filter((t) => !t.provides?.length);
     const weightedActions = rootTraits.map((t) => t.act(this, ctx));
     const bestAction = weightedActions.sort(
@@ -133,6 +131,7 @@ export class FoxEntity extends AnimalEntity {
     super();
     this.resources[Resource.Energy] = 200;
     this.resourceCaps[Resource.Energy] = 200;
+    this.init();
   }
 
   override name = 'fox';
@@ -151,6 +150,7 @@ export class RabbitEntity extends AnimalEntity {
     super();
     this.resources[Resource.Energy] = 100;
     this.resourceCaps[Resource.Energy] = 100;
+    this.init();
   }
 
   override name = 'rabbit';
@@ -163,6 +163,10 @@ export class RabbitEntity extends AnimalEntity {
     [Traits.Alive]: new LivingTrait(Resource.Energy, 10),
     [Traits.Heterotroph]: new HeterotrophTrait(['grass']),
   };
+
+  override update(ctx: TickContext): Entity | null {
+    return super.update(ctx);
+  }
 }
 
 export abstract class TerrainEntity extends BaseEntity {
@@ -180,35 +184,43 @@ export abstract class TerrainEntity extends BaseEntity {
 }
 
 export class GrassEntity extends TerrainEntity {
+  constructor() {
+    super();
+    this.init();
+  }
+
   override traits = {
-    [Traits.Alive]: new LivingTrait(Resource.Energy, 0),
+    [Traits.Wither]: new WitherTrait(Resource.Energy, 5, 0, SandEntity),
     [Traits.Photosynthesis]: new PhotosynthesisTrait(20),
   };
 
   override name = 'grass';
   override color = 'green';
-
-  override update(ctx: TickContext): Entity | null {
-    const updated = super.update(ctx);
-    if (updated === null) {
-      const sand = new SandEntity();
-      return sand;
-    }
-    return updated;
-  }
 }
 
 export class WaterEntity extends TerrainEntity {
+  constructor() {
+    super();
+    this.init();
+  }
+
   override name = 'water';
   override color = 'blue';
 }
 
 export class SandEntity extends TerrainEntity {
-  override traits = {
-    [Traits.Growth]: new GrowthTrait(Resource.Water, 20),
-    [Traits.Hydrate]: new HydrateTrait(3),
-  };
+  constructor() {
+    super();
+    this.traits = {
+      [Traits.Growth]: new GrowthTrait(Resource.Water, 20, GrassEntity),
+      [Traits.Hydrate]: new HydrateTrait(3),
+    };
+    this.init();
+  }
 
+  override onTick(ctx: TickContext): void {
+    super.onTick(ctx);
+  }
   override name = 'sand';
   override color = 'yellow';
 }

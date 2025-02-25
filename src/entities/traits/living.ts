@@ -32,17 +32,14 @@ export class LivingTrait extends BaseTrait {
     if (percentage > 0.6) {
       return NullAction;
     } else {
-      const options = e.providers[this.resource].map((trait) => {
-        return trait.act(e, ctx);
-      });
-      const bestOption = options.sort((a, b) => b.weight - a.weight)[0];
+      const bestOption = this.bestAct(this.resource, e, ctx);
       if (!bestOption) {
         return NullAction;
       }
 
       return {
-        weight: percentage * options[0].weight,
-        action: options[0].action,
+        weight: Math.abs(1.6 - percentage) * bestOption.weight,
+        action: bestOption.action,
       };
     }
   }

@@ -27,12 +27,16 @@ export class HydrateTrait extends BaseTrait {
 
     for (let coord of MovementUtils.radius(ctx.coords, this.radius)) {
       const tiles = ctx.state.get(coord.hash()) || [];
-      waterTiles.push(...tiles.filter((t) => e.name === 'water'));
+      waterTiles.push(...tiles.filter((t) => t.name === 'water'));
     }
+
     if (waterTiles.length > 0) {
       return {
         weight: Weight.Great,
-        action: () => {},
+        action: (e, ctx) => {
+          console.log(e);
+          e.resources[Resource.Water] += waterTiles.length;
+        },
       };
     }
 
@@ -40,15 +44,5 @@ export class HydrateTrait extends BaseTrait {
       weight: Weight.Neutral,
       action: () => {},
     };
-  }
-
-  // Currently entities die close to whatever they are adverse to, seems a bit extreme
-  isGrowing(e: Entity, ctx: TickContext, coords: Coords): boolean {
-    for (let coord of MovementUtils.radius(ctx.coords, this.radius)) {
-      if (this.isGrowing(e, ctx, coord)) {
-        return true;
-      }
-    }
-    return false;
   }
 }

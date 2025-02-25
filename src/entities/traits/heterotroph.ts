@@ -64,14 +64,8 @@ export class HeterotrophTrait extends BaseTrait {
   }
 
   override action(entity: Entity, ctx: TickContext) {
-    const entities = ctx.state.get(ctx.coords.hash()) || [];
-
     // check for sense range if 'food' can be found; e.g type of hunted entity, with an energy count
-    // for now, we assume you can only sense your own tile
-    const potentialFood = entities.filter(
-      (e) => e.traits.alive && this.edibleEntities.includes(e.name)
-    );
-
+    const potentialFood = this.foodAtCurrentLocation(entity, ctx);
     if (!potentialFood.length) {
       return;
     }
@@ -90,8 +84,8 @@ export class HeterotrophTrait extends BaseTrait {
 
     // check for sense range if 'food' can be found; e.g type of hunted entity, with an energy count
     // for now, we assume you can only sense your own tile
-    const potentialFood = entities.filter(
-      (e) => e.traits.alive && this.edibleEntities.includes(e.name)
+    const potentialFood = entities.filter((e) =>
+      this.edibleEntities.includes(e.name)
     );
 
     return potentialFood;
