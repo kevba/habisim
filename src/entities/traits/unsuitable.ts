@@ -1,31 +1,32 @@
 import { MovementUtils } from '../../algorithms/movement';
-import { Coords, Entity, TickContext } from '../models';
+import { Attribute, Coords, Entity, Resource, TickContext } from '../models';
 import { BaseTrait } from './abstract-base';
 import { AdverseTrait } from './adverse';
-import { Traits } from './models';
+import { Traits, WeightedAction } from './models';
 
 export class UnsuitableTrait extends BaseTrait {
   override type = Traits.Unsuitable;
-  private adverse = new AdverseTrait();
+  override provides: Resource | Attribute | null = Attribute.Habitat;
+  // IF the tile is not unsuitable, the score is at least 0.3
 
-  constructor(public unsuitable: string[] = [], public radius = 0) {
+  constructor(public unsuitable: string[] = []) {
     super();
   }
 
-  override init(e: Entity) {
-    const adverse = e.traits[Traits.Adverse];
-    if (adverse) this.adverse = adverse;
-
-    this.adverse.adverseTo.push(...this.unsuitable);
+  override act(
+    e: Entity,
+    ctx: TickContext,
+    destination?: Coords | undefined
+  ): WeightedAction {
+    return {
+      weight: this.isUnsuitable(e, ctx, destination || ctx.coords) ? 0 : 1,
+      action: () => {},
+    };
   }
 
-  override onTick(e: Entity, ctx: TickContext): void {}
-
   override check(e: Entity, ctx: TickContext) {
-    for (let coord of MovementUtils.radius(ctx.coords, this.radius)) {
-      if (this.isUnsuitable(e, ctx, coord)) {
-        return null;
-      }
+    if (this.isUnsuitable(e, ctx, ctx.coords)) {
+      return null;
     }
     return e;
   }

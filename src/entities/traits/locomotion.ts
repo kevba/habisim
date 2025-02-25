@@ -1,27 +1,23 @@
 import { AdverseTrait } from './adverse';
 import { MovementUtils } from '../../algorithms/movement';
-import { Entity, TickContext, Coords } from '../models';
-import { BaseTrait, NullAction } from './abstract-base';
+import {
+  Entity,
+  TickContext,
+  Coords,
+  Resource,
+  Attribute,
+  Weight,
+} from '../models';
+import { BaseTrait } from './abstract-base';
 import { HabitatTrait } from './habitat';
-import { Traits, Resource, WeightedAction } from './models';
+import { Traits, WeightedAction } from './models';
 
 export class LocomotionTrait extends BaseTrait {
   type = Traits.Locomotion;
-  override provides = Resource.Speed;
-  private habitat = new HabitatTrait();
-  private adverse = new AdverseTrait();
+  override provides = Attribute.Movement;
 
-  constructor(public movement: number = 0) {
+  constructor(public movement: number = 1) {
     super();
-  }
-
-  override init(e: Entity) {
-    e.resources[Resource.Speed] += this.movement;
-    const habitat = e.traits[Traits.Habitat];
-    if (habitat) this.habitat = habitat;
-
-    const adverse = e.traits[Traits.Adverse];
-    if (adverse) this.adverse = adverse;
   }
 
   override act(
@@ -30,12 +26,17 @@ export class LocomotionTrait extends BaseTrait {
     destination?: Coords
   ): WeightedAction {
     const newLocation = destination || ctx.coords;
-    let weight = 1;
-    if (!this.habitat.validHabitat(e, ctx, newLocation)) {
-      weight = weight * 0.5;
-    }
-    if (this.adverse.isAdverse(e, ctx, newLocation)) {
-      weight = weight * 0.5;
+    let weight = Weight.Neutral;
+
+    const habitatModifier = this.bestAct(
+      Attribute.Habitat,
+      e,
+      ctx,
+      destination
+    );
+
+    if (habitatModifier) {
+      weight = weight * habitatModifier.weight;
     }
 
     const distance = MovementUtils.distance(ctx.coords, newLocation);
@@ -48,10 +49,10 @@ export class LocomotionTrait extends BaseTrait {
       };
     }
 
+    const outOfRangeMod =
+      this.movement / MovementUtils.distance(ctx.coords, newLocation);
     return {
-      weight:
-        (this.movement / MovementUtils.distance(ctx.coords, newLocation)) *
-        weight,
+      weight: weight * outOfRangeMod,
       action: (e, ctx) => {
         ctx.coords = newLocation;
       },

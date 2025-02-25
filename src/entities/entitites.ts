@@ -1,10 +1,12 @@
-import { Coords, Entity, TickContext } from './models';
+import { Attribute, Coords, Entity, Resource, TickContext } from './models';
 import { AdverseTrait } from './traits/adverse';
+import { GrowthTrait } from './traits/growth';
 import { HabitatTrait } from './traits/habitat';
 import { HeterotrophTrait } from './traits/heterotroph';
+import { HydrateTrait } from './traits/hydrate';
 import { LivingTrait } from './traits/living';
 import { LocomotionTrait } from './traits/locomotion';
-import { Trait, Resource, Traits } from './traits/models';
+import { Trait, Traits } from './traits/models';
 import { PhotosynthesisTrait } from './traits/photosynthesis';
 import { UnsuitableTrait } from './traits/unsuitable';
 
@@ -16,17 +18,20 @@ export abstract class BaseEntity implements Entity {
   resources: Record<Resource, number> = {
     [Resource.Energy]: 0,
     [Resource.Water]: 0,
-    [Resource.Speed]: 0,
   };
+
   resourceCaps: Record<Resource, number> = {
     [Resource.Energy]: 0,
-    [Resource.Speed]: 0,
     [Resource.Water]: 0,
   };
-  resourceProviders: Record<Resource, Trait[]> = {
+
+  providers: Record<Resource | Attribute, Trait[]> = {
     [Resource.Energy]: [],
-    [Resource.Speed]: [],
     [Resource.Water]: [],
+    [Attribute.Movement]: [],
+    [Attribute.Habitat]: [],
+    [Attribute.Adverse]: [],
+    [Attribute.Unsuitable]: [],
   };
 
   abstract name: string;
@@ -39,10 +44,14 @@ export abstract class BaseEntity implements Entity {
   traits: Entity['traits'] = {};
   zIndex = 0;
 
+  constructor() {
+    this.init();
+  }
+
   init(): void {
     Object.values(this.traits).forEach((t) => {
       if (t.provides != null) {
-        this.resourceProviders[t.provides].push(t);
+        this.providers[t.provides].push(t);
       }
     });
     Object.values(this.traits).forEach((t) => {
@@ -67,19 +76,37 @@ export abstract class BaseEntity implements Entity {
   }
 
   update(ctx: TickContext): Entity | null {
-    const traits = Object.values(this.traits);
-    if (!traits.length) {
-      return this;
-    }
+    const updated = this.updatePerTrait(ctx);
 
-    const updated = traits
-      .map((t) => t.check(this, ctx))
-      .filter((e) => e !== null);
-    if (updated.length !== traits.length) {
+    const destroyed = Object.values(updated).some((u) => u === null);
+    if (destroyed) {
       return null;
     }
 
-    return updated[0] || this;
+    const changed = Object.values(updated).filter((u) => u !== this);
+    if (changed.length) {
+      return changed[0];
+    }
+
+    return this;
+  }
+
+  private updatePerTrait(ctx: TickContext): {
+    [key in Traits]?: Entity | null;
+  } {
+    const traits = Object.values(this.traits);
+    if (!traits.length) {
+      return {};
+    }
+
+    const traitResults: {
+      [key in Traits]?: Entity | null;
+    } = {};
+    for (let t of traits) {
+      traitResults[t.type] = t.check(this, ctx);
+    }
+
+    return traitResults;
   }
 }
 
@@ -165,7 +192,6 @@ export class GrassEntity extends TerrainEntity {
     const updated = super.update(ctx);
     if (updated === null) {
       const sand = new SandEntity();
-      sand.init();
       return sand;
     }
     return updated;
@@ -179,20 +205,12 @@ export class WaterEntity extends TerrainEntity {
 
 export class SandEntity extends TerrainEntity {
   override traits = {
-    [Traits.Unsuitable]: new UnsuitableTrait(['water'], 2),
+    [Traits.Growth]: new GrowthTrait(Resource.Water, 20),
+    [Traits.Hydrate]: new HydrateTrait(3),
   };
 
   override name = 'sand';
   override color = 'yellow';
-
-  override update(ctx: TickContext): Entity | null {
-    let updated = super.update(ctx);
-    if (updated === null) {
-      updated = new GrassEntity();
-      updated.init();
-    }
-    return updated;
-  }
 }
 
 export class DummyEntity extends BaseEntity {

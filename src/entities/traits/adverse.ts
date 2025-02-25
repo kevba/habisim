@@ -1,21 +1,34 @@
 import { MovementUtils } from '../../algorithms/movement';
-import { Coords, Entity, TickContext } from '../models';
+import {
+  Attribute,
+  Coords,
+  Entity,
+  Resource,
+  TickContext,
+  Weight,
+} from '../models';
 import { BaseTrait } from './abstract-base';
-import { Traits } from './models';
+import { Traits, WeightedAction } from './models';
 
 export class AdverseTrait extends BaseTrait {
+  override provides: Resource | Attribute | null = Attribute.Habitat;
+
   override type = Traits.Adverse;
-  constructor(public adverseTo: string[] = [], public radius = 0) {
+  constructor(public adverseTo: string[] = []) {
     super();
   }
 
-  override check(e: Entity, ctx: TickContext) {
-    for (let coord of MovementUtils.radius(ctx.coords, this.radius)) {
-      if (this.isAdverse(e, ctx, ctx.coords)) {
-        return null;
-      }
-    }
-    return e;
+  override act(
+    e: Entity,
+    ctx: TickContext,
+    destination?: Coords | undefined
+  ): WeightedAction {
+    return {
+      weight: this.isAdverse(e, ctx, destination || ctx.coords)
+        ? Weight.Bad
+        : Weight.Neutral,
+      action: () => {},
+    };
   }
 
   // Currently entities die close to whatever they are adverse to, seems a bit extreme

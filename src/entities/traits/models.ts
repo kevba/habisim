@@ -1,10 +1,10 @@
 import { EntityAction } from '../actions';
-import { Coords, Entity, TickContext } from '../models';
+import { Attribute, Coords, Entity, Resource, TickContext } from '../models';
 
 export interface Trait {
   type: Traits;
 
-  provides: Resource | null;
+  provides: Resource | Attribute | null;
   needs: Resource[];
 
   // used to run initial setup for an entity. Mainly needed for interactions between traits
@@ -39,12 +39,6 @@ export type WeightedAction = {
   weight: number;
   action: TraitAction;
 };
-
-export enum Resource {
-  Energy = 'energy',
-  Speed = 'movement',
-  Water = 'Water',
-}
 
 export class HunterTrait {
   provides = ['energy'];
@@ -86,5 +80,6 @@ export enum Traits {
   Adverse = 'Adverse',
   Photosynthesis = 'Photosynthesis',
   Unsuitable = 'Unsuitable',
-  Growth = 'Growth', // used to run initial setup for an entity. Mainly needed for interactions between traits
+  Growth = 'Growth',
+  Hydrate = 'Hydrate', // used to run initial setup for an entity. Mainly needed for interactions between traits
 }

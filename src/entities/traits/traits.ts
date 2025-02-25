@@ -2,6 +2,7 @@ import { AdverseTrait } from './adverse';
 import { GrowthTrait } from './growth';
 import { HabitatTrait } from './habitat';
 import { HeterotrophTrait } from './heterotroph';
+import { HydrateTrait } from './hydrate';
 import { LivingTrait } from './living';
 import { LocomotionTrait } from './locomotion';
 import { Traits } from './models';
@@ -21,4 +22,5 @@ export type MappedTraits = {
   [Traits.Photosynthesis]: PhotosynthesisTrait;
   [Traits.Unsuitable]: UnsuitableTrait;
   [Traits.Growth]: GrowthTrait;
+  [Traits.Hydrate]: HydrateTrait;
 };

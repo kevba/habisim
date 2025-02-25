@@ -1,6 +1,6 @@
-import { Entity, Coords, TickContext } from '../models';
+import { Entity, Coords, TickContext, Resource } from '../models';
 import { BaseTrait, NullAction } from './abstract-base';
-import { Traits, Resource, WeightedAction } from './models';
+import { Traits, WeightedAction } from './models';
 
 export class LivingTrait extends BaseTrait {
   type = Traits.Alive;
@@ -32,7 +32,7 @@ export class LivingTrait extends BaseTrait {
     if (percentage > 0.6) {
       return NullAction;
     } else {
-      const options = e.resourceProviders[this.resource].map((trait) => {
+      const options = e.providers[this.resource].map((trait) => {
         return trait.act(e, ctx);
       });
       const bestOption = options.sort((a, b) => b.weight - a.weight)[0];

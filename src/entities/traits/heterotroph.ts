@@ -1,13 +1,18 @@
 import { MovementUtils } from '../../algorithms/movement';
-import { Entity, TickContext, Coords } from '../models';
+import {
+  Entity,
+  TickContext,
+  Coords,
+  Resource,
+  Attribute,
+  Weight,
+} from '../models';
 import { BaseTrait, NullAction } from './abstract-base';
-import { LivingTrait } from './living';
-import { Resource, Traits, WeightedAction } from './models';
+import { Traits, WeightedAction } from './models';
 import { SensesTrait } from './senses';
 
 export class HeterotrophTrait extends BaseTrait {
   override provides = Resource.Energy;
-  override needs = [Resource.Speed];
 
   type = Traits.Heterotroph;
   private senses = new SensesTrait();
@@ -28,16 +33,17 @@ export class HeterotrophTrait extends BaseTrait {
   ): WeightedAction {
     if (this.foodAtCurrentLocation(e, ctx).length) {
       return {
-        weight: 1,
+        weight: Weight.Great,
         action: (e, ctx) => this.action(e, ctx),
       };
     } else {
       const options: WeightedAction[] = [];
 
       // iterate movement options, that are within sight
+      // TODO: use senses attributes
       MovementUtils.radius(ctx.coords, this.senses.senseRadius).forEach(
         (destination) => {
-          const movementOption = e.resourceProviders[Resource.Speed].map(
+          const movementOption = e.providers[Attribute.Movement].map(
             (trait) => {
               return trait.act(e, ctx, destination);
             }

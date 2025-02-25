@@ -1,7 +1,6 @@
-import { Coords, Entity, TickContext } from '../models';
+import { Entity, Resource, TickContext } from '../models';
 import { BaseTrait } from './abstract-base';
-import { LivingTrait } from './living';
-import { Resource, Traits } from './models';
+import { Traits } from './models';
 
 export class PhotosynthesisTrait extends BaseTrait {
   type = Traits.Photosynthesis;

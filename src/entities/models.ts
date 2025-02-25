@@ -1,6 +1,6 @@
 import { MapState } from '../app/services/models';
 import { MappedTraits } from './traits/traits';
-import { Trait, Resource, Traits } from './traits/models';
+import { Trait, Traits } from './traits/models';
 
 export interface Entity {
   id: number;
@@ -8,7 +8,7 @@ export interface Entity {
 
   resources: Record<Resource, number>;
   resourceCaps: Record<Resource, number>;
-  resourceProviders: Record<Resource, Trait[]>;
+  providers: Record<Resource | Attribute, Trait[]>;
 
   zIndex: number;
   name: string;
@@ -41,3 +41,24 @@ export type TickContext = {
   state: MapState;
   updatedCoords?: Coords;
 };
+
+export enum Resource {
+  Energy = 'energy',
+  Water = 'Water',
+}
+
+export enum Attribute {
+  Movement = 'movement',
+  Habitat = 'habitats',
+  Adverse = 'adverse',
+  Unsuitable = 'unsuitable',
+}
+
+export enum Weight {
+  Great = 1.5,
+  Good = 1.2,
+  Neutral = 1,
+  Bad = 0.8,
+  Terrible = 0.5,
+  Worst = 0,
+}
