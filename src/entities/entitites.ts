@@ -4,7 +4,7 @@ import { HabitatTrait } from './traits/habitat';
 import { HeterotrophTrait } from './traits/heterotroph';
 import { LivingTrait } from './traits/living';
 import { LocomotionTrait } from './traits/locomotion';
-import { AdvancedTrait, Resource, Traits } from './traits/models';
+import { Trait, Resource, Traits } from './traits/models';
 import { PhotosynthesisTrait } from './traits/photosynthesis';
 import { UnsuitableTrait } from './traits/unsuitable';
 
@@ -13,10 +13,22 @@ let ID_COUNT = 1;
 export abstract class BaseEntity implements Entity {
   id = ID_COUNT++;
 
-  resourceTree: Record<Resource, AdvancedTrait[]> = {
-    [Resource.Energy]: [],
-    [Resource.Movement]: [],
+  resources: Record<Resource, number> = {
+    [Resource.Energy]: 0,
+    [Resource.Water]: 0,
+    [Resource.Speed]: 0,
   };
+  resourceCaps: Record<Resource, number> = {
+    [Resource.Energy]: 0,
+    [Resource.Speed]: 0,
+    [Resource.Water]: 0,
+  };
+  resourceProviders: Record<Resource, Trait[]> = {
+    [Resource.Energy]: [],
+    [Resource.Speed]: [],
+    [Resource.Water]: [],
+  };
+
   abstract name: string;
   abstract render(
     coords: Coords,
@@ -30,7 +42,7 @@ export abstract class BaseEntity implements Entity {
   init(): void {
     Object.values(this.traits).forEach((t) => {
       if (t.provides != null) {
-        this.resourceTree[t.provides].push(t);
+        this.resourceProviders[t.provides].push(t);
       }
     });
     Object.values(this.traits).forEach((t) => {
@@ -90,10 +102,16 @@ export class AnimalEntity extends BaseEntity {
 }
 
 export class FoxEntity extends AnimalEntity {
+  constructor() {
+    super();
+    this.resources[Resource.Energy] = 200;
+    this.resourceCaps[Resource.Energy] = 200;
+  }
+
   override name = 'fox';
   override emoji = '🦊';
   override traits = {
-    [Traits.Alive]: new LivingTrait(100, 20),
+    [Traits.Alive]: new LivingTrait(Resource.Energy, 20),
     [Traits.Habitat]: new HabitatTrait(['grass']),
     [Traits.Unsuitable]: new UnsuitableTrait(['water']),
     [Traits.Locomotion]: new LocomotionTrait(2),
@@ -102,6 +120,12 @@ export class FoxEntity extends AnimalEntity {
 }
 
 export class RabbitEntity extends AnimalEntity {
+  constructor() {
+    super();
+    this.resources[Resource.Energy] = 100;
+    this.resourceCaps[Resource.Energy] = 100;
+  }
+
   override name = 'rabbit';
   override emoji = '🐰';
   override traits = {
@@ -109,7 +133,7 @@ export class RabbitEntity extends AnimalEntity {
     [Traits.Habitat]: new HabitatTrait(['grass']),
     [Traits.Adverse]: new AdverseTrait(['fox']),
     [Traits.Unsuitable]: new UnsuitableTrait(['water']),
-    [Traits.Alive]: new LivingTrait(100, 10),
+    [Traits.Alive]: new LivingTrait(Resource.Energy, 10),
     [Traits.Heterotroph]: new HeterotrophTrait(['grass']),
   };
 }
@@ -130,7 +154,7 @@ export abstract class TerrainEntity extends BaseEntity {
 
 export class GrassEntity extends TerrainEntity {
   override traits = {
-    [Traits.Alive]: new LivingTrait(20, 0, 20),
+    [Traits.Alive]: new LivingTrait(Resource.Energy, 0),
     [Traits.Photosynthesis]: new PhotosynthesisTrait(20),
   };
 

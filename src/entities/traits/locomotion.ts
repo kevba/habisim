@@ -7,20 +7,21 @@ import { Traits, Resource, WeightedAction } from './models';
 
 export class LocomotionTrait extends BaseTrait {
   type = Traits.Locomotion;
-  override provides = Resource.Movement;
+  override provides = Resource.Speed;
   private habitat = new HabitatTrait();
   private adverse = new AdverseTrait();
 
+  constructor(public movement: number = 0) {
+    super();
+  }
+
   override init(e: Entity) {
+    e.resources[Resource.Speed] += this.movement;
     const habitat = e.traits[Traits.Habitat];
     if (habitat) this.habitat = habitat;
 
     const adverse = e.traits[Traits.Adverse];
     if (adverse) this.adverse = adverse;
-  }
-
-  constructor(public movement: number = 0) {
-    super();
   }
 
   override act(

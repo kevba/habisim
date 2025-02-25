@@ -1,12 +1,12 @@
 import { Entity, TickContext, Coords } from '../models';
-import { AdvancedTrait, Resource, Traits, WeightedAction } from './models';
+import { Trait, Resource, Traits, WeightedAction } from './models';
 
-export abstract class BaseTrait implements AdvancedTrait {
+export abstract class BaseTrait implements Trait {
   abstract type: Traits;
   provides: Resource | null = null;
   needs: Resource[] = [];
   init(e: Entity): void {}
-  onTick(e: Entity, ctx: TickContext): void {}
+  onTick(e: Entity, ctx: TickContext) {}
   act(e: Entity, ctx: TickContext, destination?: Coords): WeightedAction {
     return {
       weight: -1,

@@ -7,11 +7,10 @@ import { SensesTrait } from './senses';
 
 export class HeterotrophTrait extends BaseTrait {
   override provides = Resource.Energy;
-  override needs = [Resource.Movement];
+  override needs = [Resource.Speed];
 
   type = Traits.Heterotroph;
   private senses = new SensesTrait();
-  private living = new LivingTrait(0, 0, 0);
 
   constructor(public edibleEntities: string[]) {
     super();
@@ -20,9 +19,6 @@ export class HeterotrophTrait extends BaseTrait {
   override init(e: Entity): void {
     const senses = e.traits[Traits.Senses];
     if (senses) this.senses = senses;
-
-    const living = e.traits[Traits.Alive];
-    if (living) this.living = living;
   }
 
   override act(
@@ -41,7 +37,7 @@ export class HeterotrophTrait extends BaseTrait {
       // iterate movement options, that are within sight
       MovementUtils.radius(ctx.coords, this.senses.senseRadius).forEach(
         (destination) => {
-          const movementOption = e.resourceTree[Resource.Movement].map(
+          const movementOption = e.resourceProviders[Resource.Speed].map(
             (trait) => {
               return trait.act(e, ctx, destination);
             }
@@ -75,12 +71,12 @@ export class HeterotrophTrait extends BaseTrait {
     }
 
     const bestTarget = potentialFood.sort(
-      (a, b) => a.traits.alive!.energy - b.traits.alive!.energy
+      (a, b) => a.resources[Resource.Energy] - b.resources[Resource.Energy]
     )[0];
 
-    const energyGain = bestTarget.traits.alive!.energy;
-    bestTarget.traits.alive?.add(-energyGain);
-    this.living.add(energyGain);
+    const energyGain = bestTarget.resources[Resource.Energy];
+    bestTarget.resources[Resource.Energy] -= energyGain;
+    entity.resources[Resource.Energy] += energyGain;
   }
 
   private foodAtCurrentLocation(e: Entity, ctx: TickContext): Entity[] {

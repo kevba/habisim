@@ -1,13 +1,7 @@
 import { EntityAction } from '../actions';
 import { Coords, Entity, TickContext } from '../models';
 
-// Deprecated
 export interface Trait {
-  type: Traits;
-  onTick(e: Entity, ctx: TickContext): EntityAction;
-}
-
-export interface AdvancedTrait {
   type: Traits;
 
   provides: Resource | null;
@@ -48,7 +42,8 @@ export type WeightedAction = {
 
 export enum Resource {
   Energy = 'energy',
-  Movement = 'movement',
+  Speed = 'movement',
+  Water = 'Water',
 }
 
 export class HunterTrait {
@@ -91,4 +86,5 @@ export enum Traits {
   Adverse = 'Adverse',
   Photosynthesis = 'Photosynthesis',
   Unsuitable = 'Unsuitable',
+  Growth = 'Growth', // used to run initial setup for an entity. Mainly needed for interactions between traits
 }

@@ -6,8 +6,11 @@ import { Traits } from './models';
 
 export class UnsuitableTrait extends BaseTrait {
   override type = Traits.Unsuitable;
-
   private adverse = new AdverseTrait();
+
+  constructor(public unsuitable: string[] = [], public radius = 0) {
+    super();
+  }
 
   override init(e: Entity) {
     const adverse = e.traits[Traits.Adverse];
@@ -16,9 +19,7 @@ export class UnsuitableTrait extends BaseTrait {
     this.adverse.adverseTo.push(...this.unsuitable);
   }
 
-  constructor(public unsuitable: string[] = [], public radius = 0) {
-    super();
-  }
+  override onTick(e: Entity, ctx: TickContext): void {}
 
   override check(e: Entity, ctx: TickContext) {
     for (let coord of MovementUtils.radius(ctx.coords, this.radius)) {

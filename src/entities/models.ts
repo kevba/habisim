@@ -1,13 +1,18 @@
 import { MapState } from '../app/services/models';
-import { MappedAdvancedTraits } from './traits/traits';
-import { AdvancedTrait, Resource, Traits } from './traits/models';
+import { MappedTraits } from './traits/traits';
+import { Trait, Resource, Traits } from './traits/models';
 
 export interface Entity {
   id: number;
-  traits: { [T in Traits]?: MappedAdvancedTraits[T] };
-  resourceTree: Record<Resource, AdvancedTrait[]>;
+  traits: { [T in Traits]?: MappedTraits[T] };
+
+  resources: Record<Resource, number>;
+  resourceCaps: Record<Resource, number>;
+  resourceProviders: Record<Resource, Trait[]>;
+
   zIndex: number;
   name: string;
+
   init(): void;
   update(ctx: TickContext): Entity | null;
   onTick(ctx: TickContext): void;
